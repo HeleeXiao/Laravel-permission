@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PermissionRole;
 use App\Repositories\HelpRepository;
+use App\Events\UpdatePermissionNameEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,7 @@ use App\Models\Permission;
 
 class PermissionController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -24,8 +26,10 @@ class PermissionController extends Controller
         if($request->has('type')){
             $permissions = $permissions->where('type',intval($request->input('type')));
         }
-        $permissions = $permissions->paginate($request->input('limit')?:config('project.list.limit'));
-        return view('permission.list',['list' => $permissions,'request'=>$request]);
+        $limit = $request->has('l') && in_array($request->input('l'),[5,10,20]) ?
+                $request->input('l')  : ( $request->input('limit')?:config('project.list.limit') );
+        $permissions = $permissions->paginate($limit);
+        return view('permission.list',['list' => $permissions,'request'=>$request,'layui'=>true]);
     }
 
     /**
@@ -52,21 +56,24 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $this->validate($request,[
-            'name' => "required|string|unique:permissions",
+            'name_zh' => "required|string|unique:permissions",
+            'name_jp' => "required|string|unique:permissions",
             'display_name' => "required|string|unique:permissions",
             'role_id' => "required",
             'pid' => "required",
         ],[
-            'name.required' => "请务必填写该数据",
-            'pid.required' => "请务必选择有无父级",
+            'name_zh.required' => "请务必填写该数据",
+            'name_jp.required' => "请务必填写该数据",
+            'pid.required'     => "请务必选择有无父级",
             'role_id.required' => "请务必选择所属组",
-            'name.unique'   => "已经存在该数据，清修改",
-            'display_name.unique'   => "已经存在该数据，清修改",
+            'name.unique'      => "已经存在该数据，请修改",
+            'name_zh.unique'   => "已经存在该数据，请修改",
+            'name_jp.unique'   => "已经存在该数据，请修改",
+            'display_name.unique'   => "已经存在该数据，请修改",
             'display_name.required' => "清务必填写该数据",
         ]);
         DB::beginTransaction();
         try {
-
             if ( ! \Route::has($request->display_name) && $request->pid != 0)
             {
                 DB::rollBack();
@@ -74,7 +81,9 @@ class PermissionController extends Controller
             }
 
             $permission = new Permission;
-            $permission->name = trim($request->name);
+            $permission->name = trim($request->display_name);
+            $permission->name_zh = trim($request->name_zh);
+            $permission->name_jp = trim($request->name_jp);
             $permission->display_name = trim($request->display_name);
             $permission->status = trim($request->status);
             $permission->pid = trim($request->pid);
@@ -82,15 +91,20 @@ class PermissionController extends Controller
             $permission->description = $request->has("description") ? trim($request->description) : "";
             $permission->save();
             $permission_id = $permission->id;
-            $role_id = trim($request->input("role_id"));
-            $role = Role::find($role_id);
+            $role_id = $request->input("role_id");
 
             if ($permission_id) {
-                if( PermissionRole::where('role_id',$role_id)->where('permission_id',$permission_id)->count() ){
+                if( PermissionRole::whereIn('role_id',$role_id)->where('permission_id',$permission_id)->count() ){
                     DB::rollBack();
-                    return back()->with("message",'存在相同数据，添加失败!')->with('status',203)->withInput();
+                    return back()->with("message",'存在重复数据，添加失败!')->with('status',203)->withInput();
                 }
-                $role->attachPermission($permission);
+
+                /**
+                 * 绑定权限到角色
+                 */
+                foreach ($role_id as $r_id) {
+                    Role::find($r_id)->attachPermission($permission);
+                }
                 DB::commit();
                 return back()->with("message", '添加成功!')->with('status', 200)->withInput();
             }
@@ -99,7 +113,7 @@ class PermissionController extends Controller
         }catch (\Exception $e){
             Log::error('添加权限失败'.$e);
             DB::rollBack();
-            return back()->with("message",'添加失败!')->with('status',203)->withInput();
+            return back()->with("message",'添加失败,请重新尝试!')->with('status',203)->withInput();
         }
 
     }
@@ -145,34 +159,90 @@ class PermissionController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request,[
-            'name' => "required|string",
+            'name_zh' => "required|string",
+            'name_jp' => "required|string",
             'display_name' => "required|string",
         ],[
-            'name.required' => "清务必填写该数据",
+            'name_zh.required' => "清务必填写该数据",
+            'name_jp.required' => "清务必填写该数据",
             'display_name.required' => "清务必填写该数据",
         ]);
         $update = [];
         try{
-            foreach (Permission::where('id',$id)->first()->toArray() as $key=>$value)
+            $permission     = Permission::where('id',$id)->first();
+            $originalRoles    = $permission->role;
+            $nowRoles       = $request->input("role_id");
+
+            foreach ($permission->toArray() as $key=>$value)
             {
-                if(in_array($key,['id','created_at','updated_at'])){
+                /**
+                 * 过滤掉不在更新范围内的字段
+                 */
+                if(in_array($key,['id','created_at','updated_at','name','role'])){
                     continue;
                 }
+                /**
+                 * 新值与过去值不同意则写入更新变量中，待更新
+                 */
                 if($value != $request->input($key))
                 {
                     $update = array_merge($update,[$key=>$request->input($key)]);
                 }
             }
             if($update){
-                if(Permission::where('id',$id)->update($update))
+                if(! Permission::where('id',$id)->update($update))
                 {
-                    DB::commit();
-                    return back()->with("message", '操作成功!')->with('status', 200);
+                    return back()->with("message",'操作失败!')->with('status',203);
                 }
             }
-            return back()->with('message','没有需要修改的数据!')->with('status', 202);
+            $delete = [];
+            $insert = [];
+            $newInArrayOriginalRoles = [];
+            /**
+             * 检查被删除的关系
+             */
+            foreach ($originalRoles as $role)
+            {
+                $newInArrayOriginalRoles[] = $role->id;
+                if( ! in_array($role->id , $nowRoles) )
+                {
+                    array_push($delete,$role->id);
+                }
+            }
+            /**
+             * 检查新增的关系
+             */
+            foreach ($nowRoles as $role)
+            {
+                if( ! in_array($role , $newInArrayOriginalRoles) )
+                {
+                    array_push($insert,$role);
+                }
+            }
+            /**
+             * 执行关系的新增与删除
+             */
+            if($insert || $delete)
+            {
+                foreach ($insert as $value)
+                {
+                    Role::find($value)->attachPermission($id);
+                }
+                foreach ($delete as $value)
+                {
+                    Role::find($value)->detachPermission($id);
+                }
+            }
+            if(!$update && !$insert && !$delete)
+            {
+                return back()->with('message','没有需要修改的数据!')->with('status', 202)->withInput();
+            }
+            //触发事件  修改权限name为路由
+            \Event::fire(new UpdatePermissionNameEvent($permission));
+            DB::commit();
+            return back()->with("message", '操作成功!')->with('status', 200);
         }catch (\Exception $e){
-            Log::error('修改权限失败'.$e->getMessage());
+            Log::error('修改权限失败'.$e->getMessage().'\n'.$e->getCode().$e->getLine());
             DB::rollBack();
             return back()->with("message",'操作失败!')->with('status',203);
         }

@@ -1,5 +1,4 @@
 @extends("layouts.manager")
-
 @section("title","Permissions - UR Manager")
 
 @section("content")
@@ -23,21 +22,40 @@
                 </div>
             </div>
             <!-- END Step Info -->
-            <div class="form-group @if($errors->has("name")) has-error @endif">
-                <label class="col-md-4 control-label" for="example-validation-username">名称 <span class="text-danger">*</span></label>
+            <div class="form-group @if($errors->has("name_zh")) has-error @endif">
+                <label class="col-md-4 control-label" for="example-validation-username">中文名称 <span class="text-danger">*</span></label>
                 <div class="col-md-6">
                     <div class="input-group">
-                        <input type="text" id="example-validation-username" name="name"
-                               class="form-control ui-wizard-content" placeholder="请输入权限名称"
+                        <input type="text" id="example-validation-username" name="name_zh"
+                               class="form-control ui-wizard-content" placeholder="请输入权限中文名称"
                                required="" aria-required="true" aria-describedby="example-validation-username-error"
-                               aria-invalid="true" value="{{ $permission->name }}">
+                               aria-invalid="true" value="{{ $permission->name_zh }}">
                         <span class="input-group-addon">
                                 <i class="gi gi-asterisk"></i>
                             </span>
                     </div>
-                    @if($errors->has("name"))
+                    @if($errors->has("name_zh"))
                         <span id="example-validation-username-error" class="help-block animation-slideDown">
-                                {{ $errors->first("name") }}！
+                                {{ $errors->first("name_zh") }}！
+                            </span>
+                    @endif
+                </div>
+            </div>
+            <div class="form-group @if($errors->has("name_jp")) has-error @endif">
+                <label class="col-md-4 control-label" for="example-validation-username">日文名称名称 <span class="text-danger">*</span></label>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" id="example-validation-username" name="name_jp"
+                               class="form-control ui-wizard-content" placeholder="请输入权限日文名称"
+                               required="" aria-required="true" aria-describedby="example-validation-username-error"
+                               aria-invalid="true" value="{{ $permission->name_jp }}">
+                        <span class="input-group-addon">
+                                <i class="gi gi-asterisk"></i>
+                            </span>
+                    </div>
+                    @if($errors->has("name_jp"))
+                        <span id="example-validation-username-error" class="help-block animation-slideDown">
+                                {{ $errors->first("name_jp") }}！
                             </span>
                     @endif
                 </div>
@@ -64,7 +82,7 @@
                     @endif
                 </div>
             </div>
-            <div class="form-group @if($errors->has("description")) has-error @endif">
+            {{--<div class="form-group @if($errors->has("description")) has-error @endif">
                 <label class="col-md-4 control-label" for="example-validation-password">
                     说明
                     <span class="text-danger">&nbsp;&nbsp;</span>
@@ -85,35 +103,34 @@
                             </span>
                     @endif
                 </div>
-            </div>
+            </div>--}}
             <div class="form-group">
                 <label class="col-md-4 control-label" for="example-validation-confirm-password">
                     归属
                     <span class="text-danger">*</span>
                 </label>
+                <?php $name = session('laravel-gettext-locale')?>
                 <div class="col-md-6">
-                    {{--<div class="input-group">--}}
-                        {{--<select id="val-skill" name="role_id" class="form-control">--}}
-                            {{--@foreach($roles as $role)--}}
-                                {{--<option value="{{ $role->id }}" selected>{{ $role->name }}</option>--}}
-                            {{--@endforeach--}}
-                        {{--</select>--}}
-                        {{--<span class="input-group-addon">--}}
-                                {{--<i class="gi gi-asterisk"></i>--}}
-                            {{--</span>--}}
-                    {{--</div>--}}
-                    <div id="example-tags_tagsinput" class="tagsinput" style="width: auto; min-height: auto; height: auto;">
+                    <select id="example-chosen-multiple" name="role_id[]" class="select-chosen"
+                            data-placeholder="请点击选择所属组" style="width: 250px; display: none;" multiple="">
                         @foreach($roles as $role)
-                        <span class="tag">
-                            <span>{{ $role->name }}</span>
-                            <a href="javascript:void(0)" title="Removing tag">x</a>
-                        </span>
+                            <option value="{{ $role->id }}"
+                                    @if(old('role_id'))
+                                        @if( in_array($role->id,old('role_id')) )) selected @endif
+                                    @endif
+                                    @foreach($permission->role as $r)
+                                        @if( $r->id == $role->id) selected @endif
+                                    @endforeach
+                                    >
+                                {{ $role->name_zh }}
+                            </option>
                         @endforeach
-                        <div id="example-tags_addTag">
-                            <input disabled id="example-tags_tag" value="" placeholder="禁止在此编辑归属权" data-default="add a tag" style="color: rgb(102, 102, 102); width: 130px;">
-                        </div>
-                        <div class="tags_clear"></div>
-                    </div>
+                    </select>
+                    @if($errors->has("role_id"))
+                        <span id="example-validation-email-error" class="help-block animation-slideDown">
+                                {{ $errors->first("role_id") }}！
+                            </span>
+                    @endif
                 </div>
             </div>
             <div class="form-group">
@@ -159,7 +176,7 @@
                             @foreach($parentPermission as $per)
                                 <option value="{{ $per->id }}"
                                     @if($permission->pid == $per->id) selected @endif
-                                >{{ $per->name }}</option>
+                                >{{ $per->$name }}</option>
                             @endforeach
                         </select>
                         @if($errors->has("pid"))

@@ -10,4 +10,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    public function __construct()
+    {
+        \Session::put('laravel-gettext-locale',env('zh_CN','name_zh'));
+//        \Session::put('laravel-gettext-locale',env('jp_JP','name_jp'));
+    }
 }

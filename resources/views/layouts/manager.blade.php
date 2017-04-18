@@ -205,21 +205,24 @@
                                 @if($per->children->count())
                                     <i class="fa fa-chevron-left sidebar-nav-indicator sidebar-nav-mini-hide"></i>
                                 @endif
-                                @if($per->name == "权限管理")
+                                @if($per->name == "permission")
                                     <i class="fa fa-unlock-alt fa-fw"></i>
                                 @else
                                     <i class="fa fa-user fa-fw"></i>
                                 @endif
-                                <span class="sidebar-nav-mini-hide">{{$per->name}}</span>
+                                <?php $name = session('laravel-gettext-locale')?>
+
+                                <span class="sidebar-nav-mini-hide">{{$per->$name}}</span>
                             </a>
                             @if($per->children)
                                 <ul>
                                     @foreach($per->children as $ch)
                                         @if($ch->type == 0)
                                             <li>
-                                                <a href="{{ route($ch->display_name) }}" class="@if($ch->display_name == \Route::currentRouteName())active @endif">
+                                                <a href="{{ $ch->display_name ? route($ch->display_name) :'javascript:;' }}"
+                                                   class="@if($ch->display_name == \Route::currentRouteName())active @endif">
                                                     {{--<i class="fa fa-chevron-left sidebar-nav-indicator">--}}
-                                                    </i>{{$ch->name}}
+                                                    {{$ch->$name}}
                                                 </a>
                                             </li>
                                         @endif

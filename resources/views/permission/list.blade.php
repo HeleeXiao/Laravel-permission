@@ -14,10 +14,36 @@
                     <div class="col-sm-6 col-xs-5">
                         <div class="dataTables_length" id="example-datatable_length">
                             <label>
-                                <select name="example-datatable_length" aria-controls="example-datatable" class="form-control">
-                                    <option value="5">5</option>
-                                    <option value="10" @if(config('list.limit',10) == 10) selected @endif >10</option>
-                                    <option value="20">20</option>
+                                <select name="example-datatable_length" aria-controls="example-datatable"
+                                        onchange="
+                                                var queryString = '{{ $request->getQueryString() }}',
+                                                limit = $(this).val(),
+                                                url = '{{ $request->url() }}';
+                                                window.location.href=url + ( queryString ? '?'+queryString+'&l='+limit : '?l='+limit )"
+                                        class="form-control">
+                                    <option value="5"
+                                            @if(request('l') == 5)
+                                                selected
+                                            @endif
+                                            >
+                                        5
+                                    </option>
+                                    <option value="10"
+                                            @if(request()->has('l') && request('l') == 10)
+                                                selected
+                                            @elseif( ( ! request()->has('l') || !in_array(request('l'),[5,10,20]) ) && config('list.limit',10) == 10)
+                                                selected
+                                            @endif
+                                            >
+                                        10
+                                    </option>
+                                    <option value="20"
+                                            @if(request('l') == 20)
+                                                selected
+                                            @endif
+                                            >
+                                        20
+                                    </option>
                                 </select>
                             </label>
                         </div>
@@ -77,16 +103,17 @@
                     ?>
                     @foreach($list as $info)
                         <tr role="row" class="odd">
+                            <?php $name = session('laravel-gettext-locale')?>
                             <td class="text-center sorting_1">{{ $info->id }}</td>
-                            <td><strong>{{ $info->name }}</strong></td>
+                            <td><strong>{{ $info->$name }}</strong></td>
                             <td>{{ $info->display_name }}</td>
                             {{--<td><strong>{{ $info->description }}</strong></td>--}}
                             <td>
                                 <button class="{{ $button_class[$info->type +2] }}"
                                         onclick="window.location.href='{{
                                         $info->type ?
-                                            $request->url().($request->getQueryString()? '?'.$request->getQueryString().'&type=1':'&type=1' )
-                                            :$request->url().($request->getQueryString()? '?'.$request->getQueryString().'&type=0':'&type=0' )
+                                            $request->url().($request->getQueryString()? '?'.$request->getQueryString().'&type=1':'?type=1' )
+                                            :$request->url().($request->getQueryString()? '?'.$request->getQueryString().'&type=0':'?type=0' )
                                         }}'"
                                 >
                                     {{ $info->type ? '按钮' : '菜单' }}
@@ -95,7 +122,7 @@
                             <td>
                                 @if($info->role)
                                     @foreach($info->role as $r)
-                                        <button class="{{ $button_class[$r->id % 4] }}">{{ $r->name }}</button>
+                                        <button class="{{ $button_class[$r->id % 4] }}">{{ $r->$name }}</button>
                                     @endforeach
                                 @endif
                             </td>
@@ -108,9 +135,11 @@
                             ];
                             ?>
                             <td>
-                                <span class="{{ $label_class[$info->parent ? ($info->parent->id+2) % 4 : 3] }}">
-                                    {{ $info->parent ? $info->parent->name : ""}}
-                                </span>
+                                @if($info->parent)
+                                    <span class="{{ $label_class[$info->parent ? ($info->parent->id+2) % 4 : 3] }}">
+                                        {{ $info->parent ? $info->parent->$name : ""}}
+                                    </span>
+                                @endif
                             </td>
                             <td align="center">
                                 <span class="label label-info">
@@ -130,7 +159,17 @@
                                     <input type="hidden" name="_method" value="delete">
                                     <a href="javascript:void(0)" data-toggle="tooltip" title=""
                                        class="btn btn-effect-ripple btn-xs btn-danger" style="overflow: hidden; position: relative;"
-                                       data-original-title="Delete" onclick='$("#destroy-{{ $info->id }}").submit()'>
+                                       data-original-title="Delete"
+                                       onclick="layer.confirm('即将删除该权限，是否继续？',{
+                                               btn:['取消', '继续'],
+                                               title:'警告',
+                                               icon:0
+                                               },function(index, layero){
+                                                    layer.closeAll()
+                                               }
+                                               ,function(index, layero){
+                                                    $('#destroy-{{ $info->id }}').submit()
+                                               }); return false;">
                                             <i class="fa fa-times" ></i>
                                     </a>
                                 </form>

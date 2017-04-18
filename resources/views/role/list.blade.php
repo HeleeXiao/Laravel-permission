@@ -11,7 +11,7 @@
         @foreach($roles as $role)
             <div class="list-group">
                 <a href="javascript:void(0)" style="cursor: default" class="list-group-item active">
-                    <h4 class="list-group-item-heading"><strong>{{ $role->name }}</strong></h4>
+                    <h4 class="list-group-item-heading"><strong>{{ $role->name_zh }}</strong></h4>
                 </a>
 
                 <!-- **************分配权限***************-->
@@ -21,14 +21,14 @@
                         <input type="hidden" name="_method" value="patch">
                         <div class="form-group">
                             <div class="col-md-12">
-                                <select id="example-chosen-multiple" name="permissions[]" class="select-chosen" data-placeholder="Choose a Country.." style="width: 250px; display: none;" multiple="">
+                                <select id="example-chosen-multiple" name="permissions[]" class="select-chosen" data-placeholder="请点击选择包含权限" style="width: 250px; display: none;" multiple="">
                                     @foreach($permissions as $permission)
                                         <option value="{{ $permission->id }}"
                                         @if($role->perms)
                                             @if( in_array( $permission->id,$role->perms->pluck('id')->toArray() ) ) selected @endif
                                         @endif
                                         >
-                                            {{ $permission->name }}
+                                            {{ $permission->name_zh }}
                                         </option>
                                     @endforeach
 
@@ -40,8 +40,11 @@
                             <div class="col-md-9 col-md-offset-3">
                                 <button type="submit" class="btn btn-effect-ripple btn-primary"
                                     onclick="layer.confirm('即将修改角色组，是否继续？',{
-                                        btn:['取消', '继续']
+                                        btn:['取消', '继续'],
+                                        title:'警告',
+                                        icon:0
                                         },function(index, layero){
+                                            layer.closeAll()
                                         }
                                         ,function(index, layero){
                                             $('#form-{{ $role->id }}').submit()

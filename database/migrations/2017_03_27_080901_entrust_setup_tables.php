@@ -15,7 +15,8 @@ class EntrustSetupTables extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->unique();
-            $table->string('display_name')->nullable();
+            $table->string('name_zh');
+            $table->string('name_jp');
             $table->string('description')->nullable();
             $table->integer('status')->comment("状态：0正常，1废弃")->nullable()->default(0);
             $table->timestamps();
@@ -38,6 +39,8 @@ class EntrustSetupTables extends Migration
             $table->increments('id');
             $table->integer('pid')->index()->comment("父级：0无")->nullable()->default(0);
             $table->string('name')->unique();
+            $table->string('name_zh');
+            $table->string('name_jp');
             $table->string('display_name')->nullable();
             $table->string('description')->nullable();
             $table->integer('status')->comment("状态：0正常，1废弃")->nullable()->default(0);

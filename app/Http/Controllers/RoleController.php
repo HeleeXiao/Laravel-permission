@@ -27,7 +27,8 @@ class RoleController extends Controller
      */
     public function create()
     {
-        //
+        return view('role.add',[
+        ]);
     }
 
     /**
