@@ -70,7 +70,6 @@ class PermissionController extends Controller
             'name_zh.unique'   => "已经存在该数据，请修改",
             'name_jp.unique'   => "已经存在该数据，请修改",
             'display_name.unique'   => "已经存在该数据，请修改",
-            'display_name.required' => "清务必填写该数据",
         ]);
         DB::beginTransaction();
         try {
@@ -161,18 +160,24 @@ class PermissionController extends Controller
         $this->validate($request,[
             'name_zh' => "required|string",
             'name_jp' => "required|string",
-            'display_name' => "required|string",
+            'display_name' => "required|string|unique:permissions",
         ],[
-            'name_zh.required' => "清务必填写该数据",
-            'name_jp.required' => "清务必填写该数据",
-            'display_name.required' => "清务必填写该数据",
+            'name_zh.required' => "请务必填写该数据",
+            'name_jp.required' => "请务必填写该数据",
+            'display_name.required' => "请务必填写该数据",
+            'display_name.unique'   => "已经存在该数据，请修改",
         ]);
         $update = [];
         try{
+            DB::beginTransaction();
             $permission     = Permission::where('id',$id)->first();
             $originalRoles    = $permission->role;
             $nowRoles       = $request->input("role_id");
-
+            if ( ! \Route::has($request->display_name) && $request->pid != 0)
+            {
+                DB::rollBack();
+                return back()->with("message",'不存在该别名!')->with('status',203)->withInput();
+            }
             foreach ($permission->toArray() as $key=>$value)
             {
                 /**
@@ -242,7 +247,7 @@ class PermissionController extends Controller
             DB::commit();
             return back()->with("message", '操作成功!')->with('status', 200);
         }catch (\Exception $e){
-            Log::error('修改权限失败'.$e->getMessage().'\n'.$e->getCode().$e->getLine());
+            Log::error('修改权限失败'.$e->getMessage().'\n'.$e->getFile().$e->getLine());
             DB::rollBack();
             return back()->with("message",'操作失败!')->with('status',203);
         }

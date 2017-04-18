@@ -24,7 +24,7 @@ class UpdatePermissionNameListener
      */
     public function handle(UpdatePermissionNameEvent $event)
     {
-        $event->permission->name = $event->permission->display_name;
+        $event->permission->name = $event->permission->display_name ;
         $event->permission->save();
     }
 }
