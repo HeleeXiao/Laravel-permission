@@ -1,9 +1,13 @@
 
 
-## About 
+## About  Laravel-Permission
+
+* 搭建一个权限管理系统
 
 * 此系统用到了 Laravel5.4 && Enreust2.1 
 
-## License
+## 配置项
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+- [ composer update ]
+- [ php artisan migrate ]
+- [ php artisan db:seed --class=EntrustSeeder ]
