@@ -1,12 +1,13 @@
 @extends("layouts.manager")
 
-@section("title","Permissions - UR Manager")
+@section("title","编辑用户 - ".config('app.name'))
 
 @section("content")
     <form id="validation-wizard" action="{{ url('users/'.$id) }}" method="post" class="form-horizontal form-bordered ui-formwizard" novalidate="novalidate">
         <!-- First Step -->
         {{ csrf_field() }}
         <input type="hidden" name="_method" value="patch">
+        <input type="hidden" name="user_id" value="{{ $info->id }}">
         <div id="validation-first" class="step ui-formwizard-content" style="display: block;">
             <!-- Step Info -->
             <div class="form-group">
@@ -28,7 +29,7 @@
                 <div class="col-md-6">
                     <div class="input-group">
                         <input type="text" id="example-validation-username" name="name"
-                               class="form-control ui-wizard-content" placeholder="请输入权限名称"
+                               class="form-control ui-wizard-content" placeholder="请输入名称"
                                required="" aria-required="true" aria-describedby="example-validation-username-error"
                                aria-invalid="true" value="{{ $info->name }}">
                         <span class="input-group-addon">
@@ -69,12 +70,15 @@
                     归属
                     <span class="text-danger">*</span>
                 </label>
-                <div class="col-xs-5">
+                <div class="col-md-6">
                     <select id="val-skill" name="role_id" class="form-control">
                         <option value="">请选择</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}"
                                     @if(old('role_id') == $role->id) selected @endif
+                                    @if($info->roles->count())
+                                        @if($info->roles[0]->id == $role->id) selected @endif
+                                    @endif
                             >
                                 {{ $role->name }}
                             </option>
@@ -86,16 +90,9 @@
                             </span>
                     @endif
                 </div>
-                <div class="col-xs-1">
-                    <a type="submit" class="btn btn-effect-ripple btn-primary"
-                       style="overflow: hidden; position: relative;">
-                            <span class="btn-ripple animate"
-                                  style="height: 71px; width: 71px; top: -20.5px; left: -14.2812px;">
-                            </span>
-                        添加
-                    </a>
-                </div>
+
             </div>
+            <?php $name = config('app.'.session('laravel-gettext-locale'))?>
             <div class="form-group">
                 <label class="col-md-4 control-label" for="example-validation-confirm-password">
                     状态
@@ -104,13 +101,16 @@
                 <div class="col-md-6">
                     <div class="input-group">
                         <select id="val-skill" name="status" class="form-control">
-                            <option value="0" @if($info->status == 0) selected @endif>正常</option>
-                            <option value="1" @if($info->status == 1) selected @endif>废弃</option>
-                            <option value="2" @if($info->status == 2) selected @endif>冻结</option>
+                            <option value="0" @if($info->status == 0) selected @endif>
+                                {{ config('manage.user.status.'.$name)[0] }}
+                            </option>
+                            <option value="1" @if($info->status == 1) selected @endif>
+                                {{ config('manage.user.status.'.$name)[1] }}
+                            </option>
                         </select>
                         <span class="input-group-addon">
-                                <i class="gi gi-asterisk"></i>
-                            </span>
+                            <i class="gi gi-asterisk"></i>
+                        </span>
                     </div>
                 </div>
             </div>

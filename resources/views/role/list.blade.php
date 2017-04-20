@@ -1,8 +1,9 @@
 @extends("layouts.manager")
 
-@section("title","角色预览 - UR Manager")
+@section("title","角色预览 - ".config('app.name'))
 
 @section("content")
+<?php $name = config('app.'.session('laravel-gettext-locale'))?>
     <!-- 首页内容下方 -->
     <div class="block full">
         <div class="block-title">
@@ -11,7 +12,7 @@
         @foreach($roles as $role)
             <div class="list-group">
                 <a href="javascript:void(0)" style="cursor: default" class="list-group-item active">
-                    <h4 class="list-group-item-heading"><strong>{{ $role->name_zh }}</strong></h4>
+                    <h4 class="list-group-item-heading"><strong>{{ $role->$name }}</strong></h4>
                 </a>
 
                 <!-- **************分配权限***************-->
@@ -28,7 +29,7 @@
                                             @if( in_array( $permission->id,$role->perms->pluck('id')->toArray() ) ) selected @endif
                                         @endif
                                         >
-                                            {{ $permission->name_zh }}
+                                            {{ $permission->$name }}
                                         </option>
                                     @endforeach
 

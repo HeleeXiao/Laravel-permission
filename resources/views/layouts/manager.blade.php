@@ -14,7 +14,7 @@
 
     <!-- Icons -->
     <!-- The following icons can be replaced with your own, they are used by desktop and mobile browsers -->
-    <link rel="shortcut icon" href="/img/favicon.png") }}">
+    <link rel="shortcut icon" href="{{ url("/img/favicon.png") }}">
     <link rel="apple-touch-icon" href="{{ asset("/img/icon57.png") }}" sizes="57x57">
     <link rel="apple-touch-icon" href="{{ asset("/img/icon72.png") }}" sizes="72x72">
     <link rel="apple-touch-icon" href="{{ asset("/img/icon76.png") }}" sizes="76x76">
@@ -41,10 +41,13 @@
     <link rel="stylesheet" href="{{ asset("/css/themes.css") }}">
     <link rel="stylesheet" href="{{ asset("/css/themes/passion.css") }}">
     <!-- END Stylesheets -->
-@section('css')
+    @section('css')
 
-@show
-    <!-- Modernizr (browser feature detection library) -->
+    @show
+    @section('style')
+
+    @show
+            <!-- Modernizr (browser feature detection library) -->
     <script src="{{ asset("/js/vendor/modernizr-3.3.1.min.js") }}"></script>
     @if( isset($layui) )
         <link rel="stylesheet" href="{{ asset("/layui/css/layui.css") }}">
@@ -109,33 +112,40 @@
                 <div class="sidebar-content">
                     <!-- Profile -->
                     <div class="sidebar-section">
-                        <h2 class="text-light">Profile</h2>
-                        <form action="index.html" method="post" class="form-control-borderless" onsubmit="return false;">
+                        <h2 class="text-light">账号设置</h2>
+                        <form action="{{ url('/users/update') }}" method="post" class="form-control-borderless" onsubmit="return false;">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="user_id" value="{{ Auth::check() ? Auth::id()  : "Not Login" }}">
                             <div class="form-group">
-                                <label for="side-profile-name">Name</label>
-                                <input type="text" id="side-profile-name" name="side-profile-name" class="form-control" value="John Doe">
+                                <label for="side-profile-name">名称</label>
+                                <input type="text" id="side-profile-name" name="name" class="form-control"
+                                       value="{{ Auth::check() ? Auth::user()->name : "Not Login" }}">
                             </div>
                             <div class="form-group">
                                 <label for="side-profile-email">Email</label>
-                                <input type="email" id="side-profile-email" name="side-profile-email" class="form-control" value="john.doe@example.com">
+                                <input type="email" id="side-profile-email" name="email" class="form-control"
+                                       value="{{ Auth::check() ? Auth::user()->email : "Not Login" }}">
                             </div>
                             <div class="form-group">
-                                <label for="side-profile-password">New Password</label>
-                                <input type="password" id="side-profile-password" name="side-profile-password" class="form-control">
+                                <label for="side-profile-password">新密码</label>
+                                <input type="password" id="side-profile-password" name="password" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="side-profile-password-confirm">Confirm New Password</label>
-                                <input type="password" id="side-profile-password-confirm" name="side-profile-password-confirm" class="form-control">
+                                <label for="side-profile-password-confirm">确认密码</label>
+                                <input type="password" id="side-profile-password-confirm" name="password-confirm"
+                                       class="form-control">
                             </div>
                             <div class="form-group remove-margin">
-                                <button type="submit" class="btn btn-effect-ripple btn-primary" onclick="App.sidebar('close-sidebar-alt');">Save</button>
+                                <button type="submit" class="btn btn-effect-ripple btn-primary"
+                                        onclick="App.sidebar('close-sidebar-alt');">Save</button>
                             </div>
                         </form>
                     </div>
                     <!-- END Profile -->
 
-                    <!-- Settings -->
-                    <div class="sidebar-section">
+                    <!-- Settings -*************************************************************************************->
+
+                    {{--<div class="sidebar-section">
                         <h2 class="text-light">Settings</h2>
                         <form action="index.html" method="post" class="form-horizontal form-control-borderless" onsubmit="return false;">
                             <div class="form-group">
@@ -160,13 +170,13 @@
                                 <button type="submit" class="btn btn-effect-ripple btn-primary" onclick="App.sidebar('close-sidebar-alt');">Save</button>
                             </div>
                         </form>
-                    </div>
-                    <!-- END Settings -->
+                    </div>--}}
+                    <!-- END Settings ***********************************************************-->
                 </div>
                 <!-- END Sidebar Content -->
             </div>
-        {{----------------------------------------右侧设置栏⬆️️----------------------------------------------}}
-        <!-- END Wrapper for scrolling functionality -->
+            {{----------------------------------------右侧设置栏⬆️️----------------------------------------------}}
+            <!-- END Wrapper for scrolling functionality -->
         </div>
         <!-- END Alternative Sidebar -->
 
@@ -174,8 +184,8 @@
         <div id="sidebar">
             <!-- Sidebar Brand -->
             <div id="sidebar-brand" class="themed-background">
-                <a href="{{ route("home") }}" class="sidebar-title">
-                    <i class="fa fa-cube"></i> <span class="sidebar-nav-mini-hide">UR<strong>Manager</strong></span>
+                <a href="{{ url("/home") }}" class="sidebar-title">
+                    <i class="fa fa-cube"></i> <span class="sidebar-nav-mini-hide">COOL<strong>Manager</strong></span>
                 </a>
             </div>
             <!-- END Sidebar Brand -->
@@ -188,57 +198,59 @@
                     <!-- Sidebar Navigation -->
                     <ul class="sidebar-nav">
                         <li>
-                            <a href="{{ route("home") }}" class=" active"><i class="gi gi-compass sidebar-nav-icon"></i><span class="sidebar-nav-mini-hide">Dashboard</span></a>
+                            <a href="{{ url("/home") }}" class=" active">
+                                <i class="gi gi-compass sidebar-nav-icon"></i>
+                                <span class="sidebar-nav-mini-hide">Home</span>
+                            </a>
                         </li>
                         <li class="sidebar-separator">
                             <i class="fa fa-ellipsis-h"></i>
                         </li>
+                        <?php $name = session('laravel-gettext-locale')?>
                         @foreach(\App\Repositories\HelpRepository::getMenu() as $per)
-                        <li
-                            @foreach($per->children as $ch)
-                                @if($ch->type == 0)
-                                    @if($ch->display_name == \Route::currentRouteName())class="active" @endif"
-                                @endif
-                            @endforeach
-                        >
-                            <a href="#" class="sidebar-nav-menu">
-                                @if($per->children->count())
-                                    <i class="fa fa-chevron-left sidebar-nav-indicator sidebar-nav-mini-hide"></i>
-                                @endif
-                                @if($per->name == "permission")
-                                    <i class="fa fa-unlock-alt fa-fw"></i>
-                                @else
-                                    <i class="fa fa-user fa-fw"></i>
-                                @endif
-                                <?php $name = session('laravel-gettext-locale')?>
-
-                                <span class="sidebar-nav-mini-hide">{{$per->$name}}</span>
-                            </a>
-                            @if($per->children)
-                                <ul>
-                                    @foreach($per->children as $ch)
-                                        @if($ch->type == 0)
-                                            <li>
-                                                <a href="{{ $ch->display_name ? route($ch->display_name) :'javascript:;' }}"
-                                                   class="@if($ch->display_name == \Route::currentRouteName())active @endif">
-                                                    {{--<i class="fa fa-chevron-left sidebar-nav-indicator">--}}
-                                                    {{$ch->$name}}
-                                                </a>
-                                            </li>
-                                        @endif
+                            <li
+                                    @foreach($per['children'] as $ch)
+                                    @if($ch['display_name'] == \Route::currentRouteName())class="active" @endif
                                     @endforeach
-                                </ul>
-                            @endif
+                                    >
+                                <a href="#" class="sidebar-nav-menu">
+                                    @if(count($per['children']))
+                                        <i class="fa fa-chevron-left sidebar-nav-indicator sidebar-nav-mini-hide"></i>
+                                    @endif
+                                    @if($per['name'] == "Permission")
+                                        <i class="fa fa-unlock-alt fa-fw"></i>
+                                    @else
+                                        <i class="fa fa-user fa-fw"></i>
+                                    @endif
 
-                        </li>
+
+                                    <span class="sidebar-nav-mini-hide">{{ $per[$name] }}</span>
+                                </a>
+                                @if($per['children'])
+                                    <ul>
+                                        @foreach($per['children'] as $ch)
+                                            @if($ch['type'] == 0)
+                                                <li>
+                                                    <a href="{{ $ch['display_name'] ? route($ch['display_name']) :'javascript:;' }}"
+                                                       class="@if($ch['display_name'] == \Route::currentRouteName())active @endif">
+                                                        {{--<i class="fa fa-chevron-left sidebar-nav-indicator">--}}
+                                                        {{$ch[$name]}}
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                @endif
+
+                            </li>
                         @endforeach
 
                         <li class="sidebar-separator">
                             <i class="fa fa-ellipsis-h"></i>
                         </li>
                         {{--<li>--}}
-                            {{--<a href="page_app_estore.html"><i class="gi gi-shopping_cart sidebar-nav-icon"></i>--}}
-                                {{--<span class="sidebar-nav-mini-hide">eStore</span></a>--}}
+                        {{--<a href="page_app_estore.html"><i class="gi gi-shopping_cart sidebar-nav-icon"></i>--}}
+                        {{--<span class="sidebar-nav-mini-hide">eStore</span></a>--}}
                         {{--</li>--}}
                     </ul>
                     <!-- END Sidebar Navigation -->
@@ -298,31 +310,35 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
                             <li class="dropdown-header">
-                                <strong>ADMINISTRATOR</strong>
+                                <strong>{{ Auth::check() ? Auth::user()->name  : "Not Login" }}</strong>
                             </li>
 
+                            {{--<li>--}}
+                            {{--<a href="javascript:void(0)" onclick="App.sidebar('toggle-sidebar-alt');">--}}
+                            {{--<i class="gi gi-settings fa-fw pull-right"></i>--}}
+                            {{--Settings--}}
+                            {{--</a>--}}
+                            {{--</li>--}}
+                            {{--<li>--}}
+                            {{--<a href="page_ready_lock_screen.html">--}}
+                            {{--<i class="gi gi-lock fa-fw pull-right"></i>--}}
+                            {{--Lock Account--}}
+                            {{--</a>--}}
+                            {{--</li>--}}
                             <li>
-                                <a href="javascript:void(0)" onclick="App.sidebar('toggle-sidebar-alt');">
-                                    <i class="gi gi-settings fa-fw pull-right"></i>
-                                    Settings
-                                </a>
-                            </li>
-                            <li>
-                                <a href="page_ready_lock_screen.html">
-                                    <i class="gi gi-lock fa-fw pull-right"></i>
-                                    Lock Account
-                                </a>
-                            </li>
-                            <li>
-                                <a href="page_ready_login.html">
+                                <form action="{{ url('/logout') }}" method="post" id="logout">
+                                    {{ csrf_field() }}
+                                </form>
+                                <a href="#" onclick="$('#logout').submit();">
                                     <i class="fa fa-power-off fa-fw pull-right"></i>
                                     Log out
                                 </a>
+
                             </li>
                         </ul>
                     </li>
-                {{------------------------------------用户栏⬆️️-----------------------------------}}
-                <!-- END User Dropdown -->
+                    {{------------------------------------用户栏⬆️️-----------------------------------}}
+                    <!-- END User Dropdown -->
                 </ul>
                 <!-- END Right Header Navigation -->
             </header>
@@ -333,47 +349,47 @@
                 <!--成功提示信息-->
                 @if(session('status') == 200)
                     <div class="col-sm-6 col-lg-12 " id="message">
-                    <!-- Success Alert -->
-                    <div class="alert alert-success alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <h4><strong>Success</strong></h4>
-                        <p> {{ session('message') }} </p>
+                        <!-- Success Alert -->
+                        <div class="alert alert-success alert-dismissable">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h4><strong>Success</strong></h4>
+                            <p> {{ session('message') }} </p>
+                        </div>
+                        <!-- END Success Alert -->
                     </div>
-                    <!-- END Success Alert -->
-                </div>
                     <!--提示信息-->
                 @elseif(session('status') == 201)
                     <div class="col-sm-6 col-lg-12 " id="message">
-                    <!-- Info Alert -->
-                    <div class="alert alert-info alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <h4><strong>Information</strong></h4>
-                        <p> {{ session('message') }} </p>
+                        <!-- Info Alert -->
+                        <div class="alert alert-info alert-dismissable">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h4><strong>Information</strong></h4>
+                            <p> {{ session('message') }} </p>
+                        </div>
+                        <!-- END Info Alert -->
                     </div>
-                    <!-- END Info Alert -->
-                </div>
                     <!-- warning 提示信息-->
                 @elseif(session('status') == 202)
                     <div class="col-sm-6 col-lg-12 " id="message">
-                    <!-- Warning Alert -->
-                    <div class="alert alert-warning alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <h4><strong>Warning</strong></h4>
-                        <p> {{ session('message') }} </p>
+                        <!-- Warning Alert -->
+                        <div class="alert alert-warning alert-dismissable">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h4><strong>Warning</strong></h4>
+                            <p> {{ session('message') }} </p>
+                        </div>
+                        <!-- END Warning Alert -->
                     </div>
-                    <!-- END Warning Alert -->
-                </div>
                     <!--错误信息-->
                 @elseif(session('status') == 203)
                     <div class="col-sm-6 col-lg-12 " id="message">
-                    <!-- Danger Alert -->
-                    <div class="alert alert-danger alert-dismissable">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <h4><strong>Error</strong></h4>
-                        <p> {{ session('message') }} </p>
+                        <!-- Danger Alert -->
+                        <div class="alert alert-danger alert-dismissable">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <h4><strong>Error</strong></h4>
+                            <p> {{ session('message') }} </p>
+                        </div>
+                        <!-- END Danger Alert -->
                     </div>
-                    <!-- END Danger Alert -->
-                </div>
                 @endif
 
 
@@ -394,15 +410,21 @@
 <script src="{{ asset("/js/vendor/bootstrap.min.js") }}"></script>
 <script src="{{ asset("/js/plugins.js") }}"></script>
 <script src="{{ asset("/js/ui.app.js") }}"></script>
+@section('bottom-style')
+
+@show
 @section('js')
 
 @show
-<!-- Load and execute javascript code used only in this page -->
+@section('script')
+
+@show
+        <!-- Load and execute javascript code used only in this page -->
 <script src="{{ asset("/js/pages/readyDashboard.js") }}"></script>
 
 <script>$(function(){ ReadyDashboard.init(); });
-//            $("#div2").fadeOut("slow");
-            $("#message").fadeOut(5000);
+    //            $("#div2").fadeOut("slow");
+    //            $("#message").fadeOut(5);
 </script>
 </body>
 </html>

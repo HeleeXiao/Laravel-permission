@@ -1,6 +1,6 @@
 @extends("layouts.manager")
-@section("title","Permissions - UR Manager")
-
+@section("title","Permissions - ".config('app.name'))
+<?php $name = config('app.'.session('laravel-gettext-locale'))?>
 @section("content")
     <form id="validation-wizard" action="{{ url('permissions/'.$id) }}" method="post" class="form-horizontal form-bordered ui-formwizard" novalidate="novalidate">
         <!-- First Step -->
@@ -109,7 +109,6 @@
                     归属
                     <span class="text-danger">*</span>
                 </label>
-                <?php $name = session('laravel-gettext-locale')?>
                 <div class="col-md-6">
                     <select id="example-chosen-multiple" name="role_id[]" class="select-chosen"
                             data-placeholder="请点击选择所属组" style="width: 250px; display: none;" multiple="">
@@ -122,7 +121,7 @@
                                         @if( $r->id == $role->id) selected @endif
                                     @endforeach
                                     >
-                                {{ $role->name_zh }}
+                                {{ $role->$name }}
                             </option>
                         @endforeach
                     </select>
@@ -141,8 +140,12 @@
                 <div class="col-md-6">
                     <div class="input-group">
                         <select id="val-skill" name="status" class="form-control">
-                            <option value="0" @if($permission->status == 0) selected @endif>正常</option>
-                            <option value="1" @if($permission->status == 1) selected @endif>待开放</option>
+                            <option value="0" @if($permission->status == 0) selected @endif>
+                                {{ config('manage.role.status.'.$name)[0] }}
+                            </option>
+                            <option value="1" @if($permission->status == 1) selected @endif>
+                                {{ config('manage.role.status.'.$name)[1] }}
+                            </option>
                         </select>
                         <span class="input-group-addon">
                                 <i class="gi gi-asterisk"></i>
@@ -158,8 +161,12 @@
                 </label>
                 <div class="col-xs-6">
                     <select id="val-skill" name="type" class="form-control">
-                        <option value="0" @if($permission->type == 0) selected @endif>菜单</option>
-                        <option value="1" @if($permission->type == 1) selected @endif>功能</option>
+                        <option value="0" @if($permission->type == 0) selected @endif>
+                            {{ config('manage.role.type.'.$name)[0] }}
+                        </option>
+                        <option value="1" @if($permission->type == 1) selected @endif>
+                            {{ config('manage.role.type.'.$name)[1] }}
+                        </option>
                     </select>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 @extends("layouts.manager")
 
-@section("title","Permissions - UR Manager")
-
+@section("title","添加用户 - ".config('app.name'))
+<?php $name = config('app.'.session('laravel-gettext-locale'))?>
 @section("content")
     <form id="validation-wizard" action="{{ url('users') }}" method="post" class="form-horizontal form-bordered ui-formwizard" novalidate="novalidate">
             <!-- First Step -->
@@ -93,14 +93,14 @@
                 </div>
                 <div class="form-group">
                     <label class="col-md-4 control-label" for="example-validation-confirm-password">
-                        归属
+                        角色
                         <span class="text-danger">*</span>
                     </label>
                     <div class="col-md-6">
                         <div class="input-group">
                             <select id="val-skill" name="role_id" class="form-control">
                                 @foreach($roles as $role)
-                                    <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
+                                    <option value="{{ $role->id }}" selected>{{ $role->$name }}</option>
                                 @endforeach
                             </select>
                             <span class="input-group-addon">
@@ -117,8 +117,9 @@
                     <div class="col-md-6">
                         <div class="input-group">
                             <select id="val-skill" name="status" class="form-control">
-                                <option value="0" selected>正常</option>
-                                <option value="1">待开放</option>
+                                @foreach(config('manage.user.status.'.$name) as $key=>$status)
+                                    <option value="{{ $key }}">{{ $status }}</option>
+                                @endforeach
                             </select>
                             <span class="input-group-addon">
                                 <i class="gi gi-asterisk"></i>

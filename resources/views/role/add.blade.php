@@ -1,6 +1,6 @@
 @extends("layouts.manager")
 
-@section("title","Permissions - UR Manager")
+@section("title","新增角色 - ".config('app.name'))
 
 @section("content")
     <form id="validation-wizard" action="{{ url('roles') }}" method="post" class="form-horizontal form-bordered ui-formwizard" novalidate="novalidate">
@@ -24,6 +24,18 @@
                                 {{--</a>--}}
                             {{--</li>--}}
                         </ul>
+                    </div>
+                </div>
+                <div class="form-group @if($errors->has("name")) has-error @endif">
+                    <label class="col-md-4 control-label" for="example-validation-username">英文名称 <span class="text-danger">*</span></label>
+                    <div class="col-xs-6">
+                        <input type="text" name="name" class="form-control" value="{{ old("name") }}" placeholder="请输入角色英文名称">
+
+                        @if($errors->has("name"))
+                            <span id="example-validation-username-error" class="help-block animation-slideDown">
+                                {{ $errors->first("name") }}！
+                            </span>
+                        @endif
                     </div>
                 </div>
                 <!-- END Step Info -->
@@ -51,23 +63,32 @@
                         @endif
                     </div>
                 </div>
-                <div class="form-group @if($errors->has("display_name")) has-error @endif">
-                    <label class="col-md-4 control-label" for="example-validation-email">
-                        路由
+                <div class="form-group @if($errors->has("permission_id")) has-error @endif">
+                    <label class="col-md-4 control-label" for="example-validation-confirm-password">
+                        权限
                         <span class="text-danger">*</span>
                     </label>
-                    <div class="col-xs-6">
-                        <input type="text" id="example-validation-email" name="display_name"
-                                   class="form-control ui-wizard-content" placeholder="请输入权限别称"
-                                   required="required" aria-required="true" aria-describedby="example-validation-email-error"
-                               aria-invalid="true"  value="{{ old("display_name") }}" >
-
-                        @if($errors->has("display_name"))
+                    <?php $name = config('app.'.session('laravel-gettext-locale'))?>
+                    <div class="col-md-6">
+                        <select id="example-chosen-multiple" name="permission_id[]" class="select-chosen"
+                                data-placeholder="请点击选择其包含的权限" style="width: 250px; display: none;" multiple="">
+                            @foreach($permissions as $permission)
+                                <option value="{{ $permission->id }}"
+                                        @if(old('permission_id'))
+                                            @if( in_array($permission->id,old('permission_id')) )) selected @endif
+                                        @endif
+                                        >
+                                    {{ $permission->$name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if($errors->has("permission_id"))
                             <span id="example-validation-email-error" class="help-block animation-slideDown">
-                                {{ $errors->first("display_name") }}！
+                                {{ $errors->first("permission_id") }}！
                             </span>
                         @endif
                     </div>
+
                 </div>
                 <div class="form-group @if($errors->has("description")) has-error @endif">
                     <label class="col-md-4 control-label" for="example-validation-password">
@@ -76,7 +97,7 @@
                     </label>
                     <div class="col-xs-6">
                             <input type="text" id="example-validation-password" name="description"
-                                   class="form-control ui-wizard-content" placeholder="请输入权限说明" required=""
+                                   class="form-control ui-wizard-content" placeholder="请输入角色说明" required=""
                                    aria-required="true" aria-describedby="example-validation-password-error"
                                    aria-invalid="true"  value="{{ old("description") }}">
 

@@ -14,7 +14,11 @@ use App\Models\Permission;
 
 class PermissionController extends Controller
 {
-
+    public function __construct()
+    {
+        parent::__construct();
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -23,12 +27,22 @@ class PermissionController extends Controller
     public function index(Request $request)
     {
         $permissions = Permission::where('status',0);
+        if($request->has('keywords'))
+        {
+            if($request->input('keywords') != "")
+            {
+                $permissions = $permissions->Where('name_zh','like',"%".e($request->input('keywords'))."%");
+                $permissions = $permissions->orWhere('name_jp','like',"%".e($request->input('keywords'))."%");
+                $permissions = $permissions->orWhere('display_name','like',"%".e($request->input('keywords'))."%");
+                $permissions = $permissions->orWhere('description','like',"%".e($request->input('keywords'))."%");
+            }
+        }
         if($request->has('type')){
             $permissions = $permissions->where('type',intval($request->input('type')));
         }
         $limit = $request->has('l') && in_array($request->input('l'),[5,10,20]) ?
-                $request->input('l')  : ( $request->input('limit')?:config('project.list.limit') );
-        $permissions = $permissions->paginate($limit);
+                $request->input('l')  : 10;
+        $permissions = $permissions->with('parent')->paginate($limit);
         return view('permission.list',['list' => $permissions,'request'=>$request,'layui'=>true]);
     }
 
@@ -73,7 +87,7 @@ class PermissionController extends Controller
         ]);
         DB::beginTransaction();
         try {
-            if ( ! \Route::has($request->display_name) && $request->pid != 0)
+            if ( ! \Route::has($request->display_name) && $request->pid != 0 && $request->type != 1)
             {
                 DB::rollBack();
                 return back()->with("message",'不存在该别名!')->with('status',203)->withInput();
@@ -105,7 +119,7 @@ class PermissionController extends Controller
                     Role::find($r_id)->attachPermission($permission);
                 }
                 DB::commit();
-                return back()->with("message", '添加成功!')->with('status', 200)->withInput();
+                return redirect('/permissions')->with("message", '添加成功!')->with('status', 200)->withInput();
             }
             DB::rollBack();
             return back()->with("message",'添加失败!')->with('status',203)->withInput();

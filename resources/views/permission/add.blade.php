@@ -1,7 +1,7 @@
 @extends("layouts.manager")
 
-@section("title","Permissions - UR Manager")
-
+@section("title","新增权限 - ".config('app.name'))
+<?php $name = config('app.'.session('laravel-gettext-locale'))?>
 @section("content")
     <form id="validation-wizard" action="{{ url('permissions') }}" method="post" class="form-horizontal form-bordered ui-formwizard" novalidate="novalidate">
             <!-- First Step -->
@@ -89,18 +89,20 @@
                 </div>--}}
                 <div class="form-group @if($errors->has("role_id")) has-error @endif">
                     <label class="col-md-4 control-label" for="example-validation-confirm-password">
-                        归属
+                        角色
                         <span class="text-danger">*</span>
                     </label>
-                    <?php $name = session('laravel-gettext-locale')?>
+                    <?php $name = config('app.'.session('laravel-gettext-locale'))?>
                     <div class="col-md-6">
                         <select id="example-chosen-multiple" name="role_id[]" class="select-chosen"
-                                data-placeholder="请点击选择所属组" style="width: 250px; display: none;" multiple="">
+                                data-placeholder="请点击选择所属角色" style="width: 250px; display: none;" multiple="">
                             @foreach($roles as $role)
                                 <option value="{{ $role->id }}"
-                                        @if(old('role_id') == $role->id) selected @endif
+                                        @if(old('role_id'))
+                                        @if(in_array($role->id,old('role_id'))) selected @endif
+                                        @endif
                                         >
-                                    {{ $role->name_zh }}
+                                    {{ $role->$name }}
                                 </option>
                             @endforeach
                         </select>
@@ -112,7 +114,7 @@
                     </div>
 
                 </div>
-                {{--/**************************************************************/--}}
+                {{--**************************************************************--}}
                 <div class="form-group">
                     <label class="col-md-4 control-label" for="example-validation-confirm-password">
                         状态
@@ -120,8 +122,9 @@
                     </label>
                     <div class="col-xs-6">
                         <select id="val-skill" name="status" class="form-control">
-                            <option value="0" @if(old('status') == 0) selected @endif>正常</option>
-                            <option value="1" @if(old('status') == 1) selected @endif>待开放</option>
+                            @foreach(config('manage.role.status.'.$name) as $key=>$status)
+                                <option value="{{ $key }}" @if(old('status') == $key) selected @endif>{{ $status }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -132,8 +135,9 @@
                     </label>
                     <div class="col-xs-6">
                         <select id="val-skill" name="type" class="form-control">
-                            <option value="0" @if(old('type') == 0) selected @endif>菜单</option>
-                            <option value="1" @if(old('type') == 0) selected @endif>功能</option>
+                            @foreach(config('manage.role.type.'.$name) as $key=>$status)
+                                <option value="{{ $key }}" @if(old('type') == $key) selected @endif>{{ $status }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

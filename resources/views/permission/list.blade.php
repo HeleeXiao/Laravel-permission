@@ -1,6 +1,6 @@
 @extends("layouts.manager")
 
-@section("title","权限列表 - UR Manager")
+@section("title","权限列表 - ".config('app.name'))
 
 @section("content")
     <!-- 首页内容下方 -->
@@ -48,17 +48,7 @@
                             </label>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xs-7">
-                        <div id="example-datatable_filter" class="dataTables_filter">
-                            <label>
-                                <div class="input-group">
-                                    <input type="search" class="form-control" placeholder="Search" aria-controls="example-datatable" />
-                                    <span class="input-group-addon">
-                                            <i class="fa fa-search"></i>
-                                        </span>
-                                </div></label>
-                        </div>
-                    </div>
+                    @include('layouts.manager-search')
                 </div>
                 <table id="example-datatable" class="table table-striped table-bordered table-vcenter dataTable no-footer" role="grid" aria-describedby="example-datatable_info">
                     <thead>
@@ -76,13 +66,13 @@
                             {{--colspan="1" aria-label="User: activate to sort column ascending" style="width: 16%;">说明</th>--}}
 
                         <th class="sorting" tabindex="0" aria-controls="example-datatable" rowspan="1"
-                            colspan="1" aria-label="User: activate to sort column ascending" style="width: 16%;">类型</th>
+                            colspan="1" aria-label="User: activate to sort column ascending" style="width: 8%;">类型</th>
 
                         <th class="sorting" tabindex="0" aria-controls="example-datatable" rowspan="1"
-                            colspan="1" aria-label="User: activate to sort column ascending" style="width: 16%;">所属组</th>
+                            colspan="1" aria-label="User: activate to sort column ascending" style="width: 30%;">所属组</th>
 
                         <th class="sorting" tabindex="0" aria-controls="example-datatable" rowspan="1"
-                            colspan="1" aria-label="Email: activate to sort column ascending" style="width: 16%;">父级</th>
+                            colspan="1" aria-label="Email: activate to sort column ascending" style="width: 8%;">父级</th>
 
                         <th style="width: 173px;" class="sorting" tabindex="0" aria-controls="example-datatable"
                             rowspan="1" colspan="1" aria-label="Status: activate to sort column ascending">状态</th>
@@ -101,9 +91,9 @@
                             'btn btn-xs btn-info',
                         ];
                     ?>
+                    <?php $name = config('app.'.session('laravel-gettext-locale'))?>
                     @foreach($list as $info)
                         <tr role="row" class="odd">
-                            <?php $name = session('laravel-gettext-locale')?>
                             <td class="text-center sorting_1">{{ $info->id }}</td>
                             <td><strong>{{ $info->$name }}</strong></td>
                             <td>{{ $info->display_name }}</td>
@@ -116,7 +106,7 @@
                                             :$request->url().($request->getQueryString()? '?'.$request->getQueryString().'&type=0':'?type=0' )
                                         }}'"
                                 >
-                                    {{ $info->type ? '按钮' : '菜单' }}
+                                    {{ config('manage.permission.type.'.$name)[$info->type] }}
                                 </button>
                             </td>
                             <td>
@@ -143,7 +133,7 @@
                             </td>
                             <td align="center">
                                 <span class="label label-info">
-                                    {{ $info->status == 1 ? "废弃" : "正常" }}
+                                    {{ config('manage.permission.status.'.$name)[$info->status] }}
                                 </span>
                             </td>
                             <td class="text-center">
@@ -154,7 +144,8 @@
                                             <i class="fa fa-pencil"></i>
                                     </a>
 
-                                <form style="display:inline-block" action="{{ url('permissions/'.$info->id) }}" method="post" id="destroy-{{ $info->id }}">
+                                <form style="display:inline-block" action="{{ url('permissions/'.$info->id) }}" method="post"
+                                      id="destroy-{{ $info->id }}">
                                     {{ csrf_field() }}
                                     <input type="hidden" name="_method" value="delete">
                                     <a href="javascript:void(0)" data-toggle="tooltip" title=""
@@ -189,7 +180,7 @@
                     </div>
                     <div class="col-sm-7 col-xs-12 clearfix">
                         <div class="dataTables_paginate paging_bootstrap" id="example-datatable_paginate">
-                            {{ $list->appends(['limit'=>request('limit')?:config('project.list.limit')])->render() }}
+                            {!! $list->appends(['l'=>request('l')?:config('project.list.limit')])->render() !!}
                         </div>
                     </div>
                 </div>

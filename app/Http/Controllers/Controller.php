@@ -14,6 +14,5 @@ class Controller extends BaseController
     public function __construct()
     {
         \Session::put('laravel-gettext-locale',env('zh_CN','name_zh'));
-//        \Session::put('laravel-gettext-locale',env('jp_JP','name_jp'));
     }
 }
